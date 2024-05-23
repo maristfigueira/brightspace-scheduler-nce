@@ -210,7 +210,7 @@ async function getExistingTimeSlots(){
         let startTime = moment.utc(data[0], 'YYYYMMDDHHmm').tz(TIMEZONE);
         let endTime = moment.utc(data[1], 'YYYYMMDDHHmm').tz(TIMEZONE);
 
-        let localDateTimeFormat = startTime.format('MMM[&nbsp;]Do[&nbsp;]YYYY, h:mm[&nbsp;]A') + '&nbsp;-&nbsp;' + endTime.format('h:mm[&nbsp;]A');
+        let localDateTimeFormat = startTime.format('MMM[&nbsp;]Do[&nbsp;]YYYY, h:mm[&nbsp;]A') + '&nbsp;-&nbsp;' + endTime.format('MMM[&nbsp;]Do[&nbsp;]YYYY, h:mm[&nbsp;]A');
 
         if(CFG.dr !== undefined && CFG.dr == 1){
             if(endTime < moment()){
@@ -436,12 +436,10 @@ function initializeDatetime(datetimeElem){
             $(datetimeElem).find('label.startdate_label p').text('Start Date');
             $(datetimeElem).find('.day_checkboxes').show();
             $(datetimeElem).find('.startdate').removeClass('col-sm-6').addClass('col-sm-3');
-            $(datetimeElem).find('.enddate').show();
         } else {
             $(datetimeElem).find('label.startdate_label p').text('Date');
             $(datetimeElem).find('.day_checkboxes').hide();
             $(datetimeElem).find('.startdate').removeClass('col-sm-3').addClass('col-sm-6');
-            $(datetimeElem).find('.enddate').hide();
         }
 
         validateTimeFields(false);
@@ -645,7 +643,7 @@ function validateTimeFields(withErrors){
             }
 
             if(isRecurring){
-
+                // TODO need seperate fields for start and end of recurring schedule
                 let startdateMoment = moment(startdate, dateFormat);
                 let enddateMoment = moment(enddate, dateFormat);
 
@@ -687,11 +685,9 @@ function validateTimeFields(withErrors){
             } else {
 
                 let datetime = {};
-                let date = $(this).find('.startdate_input').val() + " ";
-
                 datetime.id = $(this).attr('id');
-                datetime.start = moment(date + $(this).find('.starttime_input').val(), format);
-                datetime.end = moment(date + $(this).find('.endtime_input').val(), format);
+                datetime.start = moment(startdate + $(this).find('.starttime_input').val(), format);
+                datetime.end = moment(enddate + $(this).find('.endtime_input').val(), format);
                 datetimes.push(datetime);
 
             }
@@ -1002,7 +998,7 @@ async function updateGroupCategory(){
 function createGroup(timeSlot){
     
     let group = {
-        "Name": timeSlot.start.format('MMM Do YYYY, h:mm A') + '-' + timeSlot.end.format('h:mm A'),
+        "Name": timeSlot.start.format('MMM Do YYYY, h:mm A') + '-' + timeSlot.end.format('MMM Do YYYY, h:mm A'),
         "Code": "",
         "Description": { "Content": "", "Type": "Text" },
     }
@@ -1014,7 +1010,7 @@ function createGroup(timeSlot){
 async function updateGroup(timeSlot){
     
     let group = {
-        "Name": timeSlot.start.format('MMM Do YYYY, h:mm A') + '-' + timeSlot.end.format('h:mm A'),
+        "Name": timeSlot.start.format('MMM Do YYYY, h:mm A') + '-' + timeSlot.end.format('MMM Do YYYY, h:mm A'),
         "Code": convertToUTCDateTimeString(timeSlot.start, true) + '_' + convertToUTCDateTimeString(timeSlot.end, true) + '_' + timeSlot.eventId,
         "Description": { "Content": "", "Type": "Text" }
     };
