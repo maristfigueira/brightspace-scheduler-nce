@@ -397,11 +397,13 @@ function orderDatetimeElems(element = null, counter = null){
         
         elem.find('label.startdate_label').attr('for', 'date_' + index);
         elem.find('label.enddate_label').attr('for', 'enddate_' + index);
+        elem.find('label.recurring_enddate_label').attr('for', 'recurring_enddate_' + index);
         elem.find('label.starttime_label').attr('for', 'starttime_' + index);
         elem.find('label.endtime_label').attr('for', 'endtime_' + index);
         
         elem.find('input.startdate_input').attr('id', 'date_' + index).attr('name', 'date_' + index);
         elem.find('input.enddate_input').attr('id', 'enddate_' + index).attr('name', 'enddate_' + index);
+        elem.find('input.recurring_enddate_input').attr('id', 'recurring_enddate_' + index).attr('name', 'recurring_enddate_' + index);
         elem.find('select.starttime_input').attr('id', 'starttime_' + index).attr('name', 'starttime_' + index);
         elem.find('select.endtime_input').attr('id', 'endtime_' + index).attr('name', 'endtime_' + index);
 
@@ -435,11 +437,11 @@ function initializeDatetime(datetimeElem){
         if($(this).val() == 'recurring' && $(this).is(':checked')){
             $(datetimeElem).find('label.startdate_label p').text('Start Date');
             $(datetimeElem).find('.day_checkboxes').show();
-            $(datetimeElem).find('.startdate').removeClass('col-sm-6').addClass('col-sm-3');
+            $(datetimeElem).find('.recurring_enddate').show();
         } else {
             $(datetimeElem).find('label.startdate_label p').text('Date');
             $(datetimeElem).find('.day_checkboxes').hide();
-            $(datetimeElem).find('.startdate').removeClass('col-sm-3').addClass('col-sm-6');
+            $(datetimeElem).find('.recurring_enddate').hide();
         }
 
         validateTimeFields(false);
@@ -452,7 +454,7 @@ function initializeDatetime(datetimeElem){
         $('.datetime__div').each(function(){
             let datetime;
             if($(this).find('.timeslottype_recurring_input').is(':checked')){
-                datetime = moment($(this).find('.enddate_input').val() + ' ' + $(this).find('.starttime_input').val(), 'YYYY-MM-DD HH:mm');                
+                datetime = moment($(this).find('.recurring_enddate_input').val() + ' ' + $(this).find('.starttime_input').val(), 'YYYY-MM-DD HH:mm');          
             } else {
                 datetime = moment($(this).find('.startdate_input').val() + ' ' + $(this).find('.starttime_input').val(), 'YYYY-MM-DD HH:mm');
             }
@@ -632,24 +634,31 @@ function validateTimeFields(withErrors){
 
             let startdate = $(this).find('.startdate_input').val();
             let enddate = $(this).find('.enddate_input').val();
+            let recurringenddate = $(this).find('.recurring_enddate_input').val();
 
             let isRecurring = $(this).find('.timeslottype_recurring_input').is(':checked');
 
             if(startdate == '' || enddate == ''){
                 if(withErrors){
-                    modalMessage('Please enter a start ' + (isRecurring ? 'and end ' : '') + 'date.', $(this).find('.date_input'));
+                    modalMessage('Please enter a start and end date.', $(this).find('.date_input'));
+                }
+                return false;
+            }
+
+            if (isRecurring && recurringenddate == '') {
+                if (withErrors) {
+                    modalMessage('Please enter an end date for these recurring time slots', $(this).find('.recurring_enddate_input'));
                 }
                 return false;
             }
 
             if(isRecurring){
-                // TODO need seperate fields for start and end of recurring schedule
                 let startdateMoment = moment(startdate, dateFormat);
-                let enddateMoment = moment(enddate, dateFormat);
+                let recurringenddateMoment = moment(recurringenddate, dateFormat);
 
-                let dayDifference = enddateMoment.diff(startdateMoment, 'days');
+                let dayDifference = recurringenddateMoment.diff(startdateMoment, 'days');
 
-                if(startdateMoment.isAfter(enddateMoment)){
+                if(startdateMoment.isAfter(recurringenddateMoment)){
                     if(withErrors){
                         modalMessage('End date must be after start date.', $(this).find('.date_input'));
                     }
@@ -661,12 +670,11 @@ function validateTimeFields(withErrors){
                     return false;
                 }
 
-                let date = startdate + ' ';
                 let starttime = $(this).find('.starttime_input').val();
                 let endtime = $(this).find('.endtime_input').val();
 
-                let startdatetime = moment(date + starttime, format);
-                let enddatetime = date + endtime;
+                let startdatetime = moment(startdate + ' ' + starttime, format);
+                let enddatetime = moment(enddate + ' ' + endtime, format);
 
                 for(i = 0; i <= dayDifference; i++){
                                         
@@ -675,21 +683,19 @@ function validateTimeFields(withErrors){
                         let datetime = {};
                         datetime.id = $(this).attr('id');
                         datetime.start = startdatetime.clone();
-                        datetime.end = moment(enddatetime, format).add(i, 'days');
+                        datetime.end = enddatetime.clone();
                         datetimes.push(datetime);
                     }
 
                     startdatetime.add(1, 'days');
+                    enddatetime.add(1, 'days');
                 }
-
             } else {
-
                 let datetime = {};
                 datetime.id = $(this).attr('id');
                 datetime.start = moment(startdate + $(this).find('.starttime_input').val(), format);
                 datetime.end = moment(enddate + $(this).find('.endtime_input').val(), format);
                 datetimes.push(datetime);
-
             }
 
         });
