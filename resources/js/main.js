@@ -46,8 +46,14 @@ async function getClassList(product = 'le'){
     let classList = [];
     let url = (product == 'le') ? '/d2l/api/le/(version)/(orgUnitId)/classlist/' : '/d2l/api/bas/(version)/orgunits/(orgUnitId)/classlist/';
     let response = await bs.get(url);
+    
     if(response.Objects !== undefined){
         response = response.Objects;
+    }
+    
+    // return empty array if the classlist is empty or user doesn't have permission
+    if(response === false || response instanceof Array && response.length == 0 || response.constructor == Object && typeof(response.Error) !== 'undefined'){
+        return [];
     }
 
     for(student of response){
@@ -114,7 +120,7 @@ function selectAll(obj){
 }
 
 function modalInit(){
-    let newModal = '<div class="modal modal-dialog-scrollable fade" id="messageModal" tabindex="-1" role="dialog" aria-labelledby="messageModalCenterTitle" aria-hidden="true"><div class="modal-dialog modal-dialog-centered" role="document"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button></div><div class="modal-body"></div><div class="modal-footer"><button type="button" id="modalOk" class="btn btn-primary" data-dismiss="modal">OK</button> <button id="modalCancel" type="button" class="btn btn-secondary btn-close" data-dismiss="modal">Cancel</button></div></div></div></div>';
+    let newModal = '<div class="modal modal-dialog-scrollable fade" id="messageModal" tabindex="-1" role="dialog" aria-labelledby="messageModalCenterTitle"><div class="modal-dialog modal-dialog-centered" role="document"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button></div><div class="modal-body"></div><div class="modal-footer"><button type="button" id="modalOk" class="btn btn-primary" data-dismiss="modal">OK</button> <button id="modalCancel" type="button" class="btn btn-secondary btn-close" data-dismiss="modal">Cancel</button></div></div></div></div>';
     $('body').append(newModal);
     let myModal = $('#messageModal');
     myModal.on('shown.bs.modal', function () {
@@ -162,6 +168,7 @@ function modalMessage(message, id = null, callback = null, title = null, okText 
         });
     }
     myModal.modal('show');
+    //$('#modalOk').focus();
 }
 
 function modalConfirm(message, callback = null, title = null, okText = 'OK', cancelText = 'Cancel'){
